@@ -4,7 +4,9 @@ module V1
       idfa = params[:idfa]
       rooted_device = params[:rooted_device]
       country_code = request.headers['CF-IPCountry']
-      ip = request.remote_ip
+      ip = request.headers['X-Forwarded-For'] || request.remote_ip
+
+      return render json: { error: 'Invalid IP address' }, status: :bad_request unless ip_valid?(ip)
 
       return render json: { error: 'Missing or incorrect parameters' }, status: :bad_request unless idfa.present? && [true, false].include?(rooted_device)
 
@@ -31,6 +33,11 @@ module V1
     end
 
     private
+
+    def ip_valid?(ip)
+      # Esta expresión regular valida formatos IPv4 y IPv6
+      ip =~ /\A(?:[0-9]{1,3}\.){3}[0-9]{1,3}\z/ || ip =~ /\A(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}\z/i
+    end
 
     def country_banned?(country_code)
       !country_code.present? || !$redis.smembers('allowed_countries').include?(country_code)
