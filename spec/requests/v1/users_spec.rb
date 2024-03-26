@@ -3,18 +3,18 @@ require 'httparty'
 
 RSpec.describe 'V1::Users', type: :request do
   describe 'POST /v1/user/check_status' do
-    let(:valid_headers) { { "CONTENT_TYPE" => "application/json" } }
+    let(:valid_headers) { { "CONTENT_TYPE" => "application/json", "CF-IPCountry" => "US" } }
     let(:valid_params) { { idfa: SecureRandom.uuid, rooted_device: false }.to_json }
 
     context 'when the user is not banned' do
-      it 'returns unbanned status' do
+      it 'returns not_banned status' do
         allow($redis).to receive(:smembers).and_return(['US'])
-        allow(HTTParty).to receive(:get).and_return(double(success?: true, parsed_response: { 'security' => { 'vpn' => false, 'proxy' => false } }))
+        allow(VpnApiService).to receive(:check_ip).and_return({ 'security' => { 'vpn' => false, 'proxy' => false, 'tor' => false } })
 
         post '/v1/user/check_status', params: valid_params, headers: valid_headers.merge("CF-IPCountry" => "US")
 
         expect(response).to have_http_status(:ok)
-        expect(JSON.parse(response.body)['ban_status']).to eq('unbanned')
+        expect(JSON.parse(response.body)['ban_status']).to eq('not_banned')
       end
     end
 
@@ -40,7 +40,7 @@ RSpec.describe 'V1::Users', type: :request do
 
     context 'when the IP is identified as Tor or VPN' do
       it 'returns banned status' do
-        allow(HTTParty).to receive(:get).and_return(double(success?: true, parsed_response: { 'security' => { 'vpn' => true, 'proxy' => false } }))
+        allow(VpnApiService).to receive(:check_ip).and_return({ 'security' => { 'vpn' => true, 'proxy' => false, 'tor' => true } })
 
         post '/v1/user/check_status', params: valid_params, headers: valid_headers
 
