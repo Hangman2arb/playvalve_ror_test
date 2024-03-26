@@ -6,7 +6,7 @@ This Ruby on Rails API-only application provides an endpoint to perform a series
 
 ## Technologies
 
-- Rails 3.2.3
+- Ruby 3.2.3
 - Ruby on Rails 7 (API mode)
 - PostgreSQL
 - Redis
@@ -21,7 +21,7 @@ This Ruby on Rails API-only application provides an endpoint to perform a series
    ```
 
 2. **Setup Environment Variables:**
-    - Ensure you have a `.env` file with necessary variables like `REDIS_URL` (default: "redis://localhost:6379/0") and `VPNAPI_KEY`.
+    - Ensure you have a `.env` file with necessary variables: `REDIS_URL` (default: "redis://localhost:6379/0") and `VPNAPI_KEY`.
 
 3. **Install dependencies:**
    ```
@@ -88,7 +88,7 @@ This will run all the RSpec tests and provide a detailed output of each test cas
     - URL: `http://localhost:3000/v1/user/check_status`
     - Headers:
         - Content-Type: application/json
-        - X-Forwarded-For: [IP]
+        - X-Forwarded-For: [IP] (This is required because Postman always sends '::1' as the IP address.)
         - CF-IPCountry: [Country Code]
     - Body (raw JSON):
       ```json
@@ -97,7 +97,7 @@ This will run all the RSpec tests and provide a detailed output of each test cas
         "rooted_device": false
       }
       ```
-
+   
 3. **Send the request and observe the response.**
 
 The response will indicate the user's ban status based on the implemented security checks.
